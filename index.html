@@ -1,1 +1,54 @@
 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K.TUBE GLOBAL</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101010;color:white;font-family:Arial}
+header{background:#e60023;padding:18px;font-size:25px;font-weight:bold}
+nav{display:flex;justify-content:space-around;background:#222;padding:14px}
+button{background:#e60023;color:white;border:0;padding:12px;border-radius:8px}
+main{padding:16px}
+input{width:100%;padding:13px;margin:8px 0;border-radius:8px;border:0}
+.card{background:#222;padding:15px;margin:15px 0;border-radius:12px}
+video{width:100%;border-radius:10px}
+h2{color:#ff334f}
+</style>
+</head>
+<body>
+<header>▶ K.TUBE GLOBAL</header>
+<nav>
+<span>Home</span><span>Videos</span><span>Upload</span>
+</nav>
+<main>
+<h2>Welcome to K.TUBE GLOBAL</h2>
+<p>Your Global Video Platform</p>
+<input id="search" placeholder="Search videos...">
+<div class="card">
+<h3>Upload Your Video</h3>
+<input type="file" id="file" accept="video/*">
+<button onclick="upload()">Upload Video</button>
+</div>
+<div id="videos"></div>
+</main>
+<script>
+function upload(){
+const file=document.getElementById('file').files[0];
+if(!file){alert('Please select a video');return;}
+const url=URL.createObjectURL(file);
+const card=document.createElement('div');
+card.className='card';
+const video=document.createElement('video');
+video.src=url;
+video.controls=true;
+video.playsInline=true;
+card.appendChild(video);
+document.getElementById('videos').prepend(card);
+}
+</script>
+</body>
+</html>
