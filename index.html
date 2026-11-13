@@ -1,81 +1,145 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>K.TUBE GLOBAL</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#101010;color:white;font-family:Arial}
-header{background:#e60023;padding:20px;font-size:25px;font-weight:bold;text-align:center}
-nav{display:flex;justify-content:space-around;background:#222;padding:14px}
-main{max-width:700px;margin:auto;padding:16px}
-.card{background:#222;padding:16px;margin:15px 0;border-radius:12px}
-input{width:100%;padding:13px;margin:8px 0;border:0;border-radius:8px}
-button{width:100%;padding:13px;margin:6px 0;background:#e60023;color:white;border:0;border-radius:8px;font-weight:bold}
+body{margin:0;background:#101010;color:white;font-family:Arial,sans-serif}
+header{background:#181818;padding:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.logo{font-size:25px;font-weight:bold;color:#ff3030}
+.logo span{color:white}
+main{max-width:1200px;margin:auto;padding:16px}
+.panel{background:#202020;padding:16px;border-radius:12px;margin:15px 0}
+input,select{width:100%;padding:13px;margin:7px 0;background:#292929;color:white;border:1px solid #444;border-radius:8px}
+button{padding:12px 15px;background:#e62117;color:white;border:0;border-radius:8px;font-weight:bold;cursor:pointer}
 .google{background:white;color:#222}
-video{width:100%;border-radius:10px}
-h2{color:#ff405b}
-#status{overflow-wrap:anywhere;color:#76e6a0}
-#account{overflow-wrap:anywhere;color:#76e6a0}
+.hidden{display:none!important}
+.categories{display:flex;gap:9px;overflow-x:auto;padding:12px 0}
+.category{background:#292929;color:white;white-space:nowrap}
+.category.active{background:#e62117}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:15px}
+.card{background:#202020;border-radius:10px;padding:12px;overflow:hidden}
+.card video{width:100%;max-height:180px;background:black;border-radius:8px}
+.card h3{font-size:16px;overflow-wrap:anywhere}
+.small{font-size:13px;color:#aaa}
+#message,#uploadMessage{overflow-wrap:anywhere;color:#80e6a0}
+#player{display:none;position:fixed;inset:0;background:#000e;z-index:10;align-items:center;justify-content:center;padding:15px}
+.playerbox{width:100%;max-width:850px;background:#202020;padding:15px;border-radius:12px}
+#playerVideo{width:100%;max-height:70vh;background:black}
+footer{text-align:center;color:#888;padding:30px}
 </style>
 </head>
 <body>
-<header>▶ K.TUBE GLOBAL</header>
-<nav><span>Home</span><span>Videos</span><span>Upload</span></nav>
+
+<header>
+ <div class="logo">▶ K.TUBE <span>GLOBAL</span></div>
+ <button id="logoutButton" class="hidden" onclick="logout()">Logout</button>
+</header>
+
 <main>
-<h2>Welcome to K.TUBE GLOBAL</h2>
-<p>Your Global Video Sharing Platform</p>
+ <h2>Welcome to K.TUBE GLOBAL</h2>
+ <p class="small">Your Global Video Sharing Platform</p>
 
-<div class="card">
-<h3>Login / Signup</h3>
-<input id="email" type="email" placeholder="Email address">
-<input id="password" type="password" placeholder="Password (6+ characters)">
-<button onclick="signup()">Create Account</button>
-<button onclick="login()">Login</button>
-<button class="google" onclick="googleLogin()">Continue with Google</button>
-<button onclick="logout()">Logout</button>
-<p id="account">Checking account...</p>
-</div>
+ <section id="authPanel" class="panel">
+  <h3>Login / Signup</h3>
+  <input id="email" type="email" placeholder="Email address">
+  <input id="password" type="password" placeholder="Password (6+ characters)">
+  <button onclick="signup()">Create Account</button>
+  <button onclick="login()">Login</button>
+  <button class="google" onclick="googleLogin()">Continue with Google</button>
+  <p id="message"></p>
+ </section>
 
-<div class="card">
-<h3>Upload Your Video</h3>
-<input id="title" placeholder="Video title">
-<input id="file" type="file" accept="video/*">
-<button onclick="uploadVideo()">Upload Online</button>
-<p id="status">Ready to upload</p>
-</div>
+ <section id="userPanel" class="panel hidden">
+  <h3 id="welcome">Welcome!</h3>
+  <p class="small">You are logged in.</p>
+ </section>
 
-<h2>Global Videos</h2>
-<input id="search" placeholder="Search videos..." oninput="showVideos()">
-<div id="videos">Loading...</div>
+ <section id="uploadPanel" class="panel hidden">
+  <h3>Upload Your Video</h3>
+  <input id="title" placeholder="Enter video title">
+  <select id="category">
+   <option>Hollywood Movies</option>
+   <option>Bollywood Movies</option>
+   <option>Pakistani Songs</option>
+   <option>Sindhi Songs</option>
+   <option>Other Songs</option>
+   <option>Islamic / Quran / Naat</option>
+   <option>Dramas</option>
+   <option>Cartoons</option>
+   <option>Documentaries</option>
+   <option>News</option>
+   <option>Other Videos</option>
+  </select>
+  <input id="file" type="file" accept="video/*">
+  <button onclick="uploadVideo()">Upload Online</button>
+  <p id="uploadMessage"></p>
+  <p class="small">Maximum file size: 50 MB</p>
+ </section>
+
+ <h2>Explore Videos</h2>
+ <input id="search" placeholder="Search videos..." oninput="renderVideos()">
+
+ <div class="categories">
+  <button class="category active" onclick="chooseCategory('All Videos',this)">All Videos</button>
+  <button class="category" onclick="chooseCategory('Hollywood Movies',this)">Hollywood</button>
+  <button class="category" onclick="chooseCategory('Bollywood Movies',this)">Bollywood</button>
+  <button class="category" onclick="chooseCategory('Pakistani Songs',this)">Pakistani Songs</button>
+  <button class="category" onclick="chooseCategory('Sindhi Songs',this)">Sindhi Songs</button>
+  <button class="category" onclick="chooseCategory('Other Songs',this)">Other Songs</button>
+  <button class="category" onclick="chooseCategory('Islamic / Quran / Naat',this)">Islamic / Naat</button>
+  <button class="category" onclick="chooseCategory('Dramas',this)">Dramas</button>
+  <button class="category" onclick="chooseCategory('Cartoons',this)">Cartoons</button>
+  <button class="category" onclick="chooseCategory('Documentaries',this)">Documentaries</button>
+  <button class="category" onclick="chooseCategory('News',this)">News</button>
+  <button class="category" onclick="chooseCategory('Other Videos',this)">Other Videos</button>
+ </div>
+
+ <div id="videoGrid" class="grid">Loading videos...</div>
 </main>
+
+<div id="player">
+ <div class="playerbox">
+  <button onclick="closePlayer()">Close ✕</button>
+  <h3 id="playerTitle"></h3>
+  <video id="playerVideo" controls playsinline></video>
+ </div>
+</div>
+
+<footer>K.TUBE GLOBAL © 2026</footer>
 
 <script>
 const PROJECT_URL="https://vslfjjxtcjsacklmafyc.supabase.co";
 const API_KEY="sb_publishable_QOlKiET0bY9obKkGh0GwTQ_e3ESgC2Y";
-
 const db=window.supabase.createClient(PROJECT_URL,API_KEY);
 let user=null;
+let videos=[];
+let currentCategory="All Videos";
 
 async function checkUser(){
- const {data,error}=await db.auth.getUser();
- user=data?.user||null;
- document.getElementById("account").textContent=
- user?"Logged in: "+(user.email||"Google account"):"Please login or create account";
+ const {data}=await db.auth.getSession();
+ user=data.session?.user||null;
+ document.getElementById("authPanel").classList.toggle("hidden",!!user);
+ document.getElementById("userPanel").classList.toggle("hidden",!user);
+ document.getElementById("uploadPanel").classList.toggle("hidden",!user);
+ document.getElementById("logoutButton").classList.toggle("hidden",!user);
+ if(user) document.getElementById("welcome").textContent="Welcome "+(user.email||"User");
 }
 
 async function signup(){
  const email=document.getElementById("email").value.trim();
  const password=document.getElementById("password").value;
  if(!email||password.length<6){
-  alert("Enter email and password of 6+ characters");
+  document.getElementById("message").textContent="Enter email and password of at least 6 characters.";
   return;
  }
  const {data,error}=await db.auth.signUp({email,password});
- if(error){alert(error.message);return;}
- alert(data.session?"Account created!":"Check your email to confirm.");
+ if(error){document.getElementById("message").textContent=error.message;return;}
+ document.getElementById("message").textContent=data.session?"Account created!":"Please check your email to confirm your account.";
  await checkUser();
 }
 
@@ -83,21 +147,17 @@ async function login(){
  const email=document.getElementById("email").value.trim();
  const password=document.getElementById("password").value;
  const {error}=await db.auth.signInWithPassword({email,password});
- if(error){alert(error.message);return;}
+ if(error){document.getElementById("message").textContent=error.message;return;}
+ document.getElementById("message").textContent="Login successful!";
  await checkUser();
- alert("Login successful!");
 }
 
 async function googleLogin(){
  const {error}=await db.auth.signInWithOAuth({
   provider:"google",
-  options:{
-   redirectTo:"https://kkalhoro156-droid.github.io/Ktube-Global/"
-  }
+  options:{redirectTo:"https://kkalhoro156-droid.github.io/Ktube-Global/"}
  });
- if(error){
-  alert("Google Login Error: "+error.message);
- }
+ if(error) document.getElementById("message").textContent=error.message;
 }
 
 async function logout(){
@@ -108,84 +168,114 @@ async function logout(){
 
 async function uploadVideo(){
  await checkUser();
- if(!user){alert("Please login first");return;}
-
- const file=document.getElementById("file").files[0];
+ if(!user){alert("Please login first.");return;}
  const title=document.getElementById("title").value.trim();
- const status=document.getElementById("status");
+ const category=document.getElementById("category").value;
+ const file=document.getElementById("file").files[0];
+ const status=document.getElementById("uploadMessage");
 
- if(!file||!title){alert("Enter title and select video");return;}
- if(!file.type.startsWith("video/")){alert("Select a video file");return;}
- if(file.size>50*1024*1024){alert("Maximum video size is 50 MB");return;}
+ if(!title||!file){status.textContent="Enter title and select a video.";return;}
+ if(!file.type.startsWith("video/")){status.textContent="Select a video file.";return;}
+ if(file.size>50*1024*1024){status.textContent="Maximum video size is 50 MB.";return;}
 
- status.textContent="Uploading video...";
+ status.textContent="Uploading... Please wait.";
  const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
  const path=user.id+"/"+Date.now()+"_"+safeName;
 
- const {error:upError}=await db.storage
- .from("ktube-videos")
- .upload(path,file,{contentType:file.type});
+ const {error:upError}=await db.storage.from("ktube-videos")
+  .upload(path,file,{contentType:file.type});
 
  if(upError){status.textContent="Storage error: "+upError.message;return;}
 
- const {data:publicData}=db.storage
- .from("ktube-videos").getPublicUrl(path);
+ const {data:publicData}=db.storage.from("ktube-videos").getPublicUrl(path);
 
  const {error:dbError}=await db.from("videos").insert({
   user_id:user.id,
   title:title,
-  video_url:publicData.publicUrl
+  video_url:publicData.publicUrl,
+  category:category
  });
 
- if(dbError){
-  status.textContent="Database error: "+dbError.message;
-  return;
- }
+ if(dbError){status.textContent="Database error: "+dbError.message;return;}
 
  status.textContent="Video uploaded successfully!";
  document.getElementById("title").value="";
  document.getElementById("file").value="";
- await showVideos();
+ await loadVideos();
 }
 
-async function showVideos(){
- const box=document.getElementById("videos");
- const term=document.getElementById("search").value.toLowerCase();
-
+async function loadVideos(){
+ const box=document.getElementById("videoGrid");
+ box.textContent="Loading videos...";
  const {data,error}=await db.from("videos")
-  .select("id,title,video_url,created_at")
+  .select("id,title,video_url,created_at,category")
   .order("created_at",{ascending:false});
 
- if(error){box.textContent="Video loading error: "+error.message;return;}
+ if(error){box.textContent="Loading error: "+error.message;return;}
+ videos=data||[];
+ renderVideos();
+}
+
+function renderVideos(){
+ const box=document.getElementById("videoGrid");
+ const term=document.getElementById("search").value.toLowerCase();
+ const filtered=videos.filter(v=>{
+  const category=v.category||"All Videos";
+  return (currentCategory==="All Videos"||category===currentCategory)&&
+   (v.title||"").toLowerCase().includes(term);
+ });
 
  box.innerHTML="";
- const found=(data||[]).filter(v=>
-  (v.title||"").toLowerCase().includes(term)
- );
+ if(!filtered.length){box.textContent="No videos found.";return;}
 
- if(!found.length){box.textContent="No videos available yet.";return;}
-
- found.forEach(v=>{
+ filtered.forEach(v=>{
   const card=document.createElement("div");
   card.className="card";
   const heading=document.createElement("h3");
-  heading.textContent=v.title;
-  const player=document.createElement("video");
-  player.src=v.video_url;
-  player.controls=true;
-  player.playsInline=true;
-  player.preload="metadata";
-  card.append(heading,player);
+  heading.textContent=v.title||"Untitled";
+  const label=document.createElement("p");
+  label.className="small";
+  label.textContent=v.category||"All Videos";
+  const video=document.createElement("video");
+  video.src=v.video_url;
+  video.controls=true;
+  video.preload="metadata";
+  video.playsInline=true;
+  const watch=document.createElement("button");
+  watch.textContent="Open Player";
+  watch.onclick=()=>openPlayer(v.video_url,v.title);
+  card.append(heading,label,video,watch);
   box.appendChild(card);
  });
 }
 
-db.auth.onAuthStateChange((event,session)=>{
- user=session?.user||null;
+function openPlayer(url,title){
+ const video=document.getElementById("playerVideo");
+ document.getElementById("playerTitle").textContent=title||"";
+ video.src=url;
+ document.getElementById("player").style.display="flex";
+ video.play().catch(()=>{});
+}
+
+function closePlayer(){
+ const video=document.getElementById("playerVideo");
+ video.pause();
+ video.src="";
+ document.getElementById("player").style.display="none";
+}
+
+function chooseCategory(category,button){
+ currentCategory=category;
+ document.querySelectorAll(".category").forEach(b=>b.classList.remove("active"));
+ button.classList.add("active");
+ renderVideos();
+}
+
+db.auth.onAuthStateChange(()=>{
  checkUser();
 });
 
-checkUser().then(showVideos);
+checkUser().then(loadVideos);
 </script>
 </body>
 </html>
