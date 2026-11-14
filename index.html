@@ -1,78 +1,669 @@
-async function uploadVideo(){
- if(!user){authPage();return;}
-
- const f=$("file").files[0];
- const title=$("title").value.trim();
- const description=$("desc").value.trim();
- const selectedCategory=$("category").value;
- const tags=$("tags").value
-  .split(",")
-  .map(t=>t.trim())
-  .filter(Boolean)
-  .slice(0,20);
-
- if(!f||!title){
-  $("uploadStatus").textContent="Video file aur title zaroori hain.";
-  return;
- }
-
- if(!f.type.startsWith("video/")||f.size>50*1024*1024){
-  $("uploadStatus").textContent="Valid video select karein, maximum 50 MB.";
-  return;
- }
-
- $("uploadStatus").textContent="Video uploading...";
-
- try{
-  const path=user.id+"/"+Date.now()+"_"+f.name.replace(/[^a-zA-Z0-9._-]/g,"_");
-
-  const upload=await db.storage.from("ktube-videos")
-   .upload(path,f,{contentType:f.type});
-
-  if(upload.error)throw upload.error;
-
-  const videoUrl=db.storage.from("ktube-videos")
-   .getPublicUrl(path).data.publicUrl;
-
-  let imageUrl=null;
-  const im=$("thumb").files[0];
-
-  if(im){
-   if(!im.type.startsWith("image/"))
-    throw new Error("Thumbnail image select karein.");
-
-   const imagePath=user.id+"/thumb_"+Date.now()+"_"+im.name.replace(/[^a-zA-Z0-9._-]/g,"_");
-
-   const imageUpload=await db.storage.from("ktube-videos")
-    .upload(imagePath,im,{contentType:im.type});
-
-   if(imageUpload.error)throw imageUpload.error;
-
-   imageUrl=db.storage.from("ktube-videos")
-    .getPublicUrl(imagePath).data.publicUrl;
-  }
-
-  const result=await db.from("videos").insert({
-   user_id:user.id,
-   title:title,
-   description:description,
-   category:selectedCategory,
-   tags:tags,
-   video_url:videoUrl,
-   thumbnail_url:imageUrl
-  });
-
-  if(result.error)throw result.error;
-
-  $("uploadStatus").textContent="Video uploaded successfully!";
-  $("title").value="";
-  $("desc").value="";
-  $("tags").value="";
-  $("file").value="";
-  $("thumb").value="";
-  homePage();
-
- }catch(e){
-  $("uploadStatus").textContent="Upload error: "+e.message;
- }
-}
+<!DOCTYPE html>  <html lang="en">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width,initial-scale=1">  
+<title>K.TUBE GLOBAL</title>  
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  
+<style>  
+*{box-sizing:border-box}  
+body{margin:0;background:#101010;color:#fff;font-family:Arial,sans-serif}  
+header{background:#181818;padding:12px;display:flex;gap:10px;align-items:center;position:sticky;top:0;z-index:5}  
+.logo{color:#ff263f;font-size:22px;font-weight:bold;white-space:nowrap}  
+.search{display:flex;flex:1}  
+input,textarea,select{background:#292929;color:white;border:1px solid #444;padding:12px;border-radius:8px;width:100%;margin:6px 0}  
+button{background:#ff263f;color:white;border:0;padding:11px 14px;border-radius:8px;cursor:pointer;margin:3px}  
+nav{display:flex;gap:7px;overflow:auto;padding:10px;background:#181818}  
+nav button{white-space:nowrap;background:#333}  
+main{padding:15px;max-width:1200px;margin:auto}  
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}  
+.item{cursor:pointer;min-width:0}  
+.thumb{width:100%;aspect-ratio:16/9;background:#292929;border-radius:10px;object-fit:cover}  
+.item h3{font-size:15px;margin:8px 0}  
+.muted{color:#aaa;font-size:13px}  
+.card{background:#1d1d1d;padding:16px;border-radius:12px;margin:12px 0}  
+video{width:100%;max-height:65vh;background:#000;border-radius:10px}  
+.hidden{display:none!important}  
+.row{display:flex;gap:8px;flex-wrap:wrap}  
+.status{color:#ffb7c0;white-space:pre-wrap}  
+@media(max-width:600px){  
+ main{padding:10px}  
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}  
+ .logo{font-size:17px}  
+ header{padding:8px;gap:5px}  
+ header button{padding:9px}  
+}  
+</style>  
+</head>  
+<body>  <header>  
+ <div class="logo">▶ K.TUBE</div>  
+ <div class="search">  
+  <input id="search" placeholder="Search videos..." oninput="loadVideos()">  
+  <button onclick="loadVideos()">⌕</button>  
+ </div>  
+ <button id="accountButton" onclick="authPage()">Sign in</button>  
+</header>  <nav id="cats"></nav>  <main>  
+<section id="home">  
+ <h2>Explore Videos</h2>  
+ <div class="row">  
+  <button onclick="homePage()">Home</button>  
+  <button onclick="uploadPage()">＋ Upload</button>  
+  <button onclick="profilePage()">My Channel</button>  
+ </div>  
+ <div id="videos" class="grid">Loading videos...</div>  
+</section>  <section id="auth" class="hidden">  
+ <div class="card">  
+  <h2>Login / Signup</h2>  
+  <input id="email" type="email" placeholder="Email">  
+  <input id="password" type="password" placeholder="Password (6+ characters)">  
+  <button onclick="signup()">Create Account</button>  
+  <button onclick="login()">Sign In</button>  
+  <button onclick="googleLogin()">Google Login</button>  
+  <button onclick="logout()">Logout</button>  
+  <p id="authStatus" class="status"></p>  
+  <button onclick="homePage()">Back Home</button>  
+ </div>  
+</section>  <section id="upload" class="hidden">  
+ <div class="card">  
+  <h2>Upload Video</h2>  
+  <input id="title" placeholder="Video title">  
+  <textarea id="desc" placeholder="Video description"></textarea>  
+  <input id="tags" placeholder="Tags (comma separated)">  
+  <select id="category">  
+   <option>Other Videos</option>  
+   <option>Hollywood Movies</option>  
+   <option>Bollywood Movies</option>  
+   <option>Pakistani Songs</option>  
+   <option>Sindhi Songs</option>  
+   <option>Other Songs</option>  
+   <option>Islamic / Quran / Naat</option>  
+   <option>Dramas</option>  
+   <option>Cartoons</option>  
+   <option>Documentaries</option>  
+   <option>News</option>  
+  </select>  
+  <label>Video file (maximum 50 MB)</label>  
+  <input id="file" type="file" accept="video/*">  
+  <label>Thumbnail image (optional)</label>  
+  <input id="thumb" type="file" accept="image/*">  
+  <button onclick="uploadVideo()">Upload Online</button>  
+  <p id="uploadStatus" class="status"></p>  
+  <button onclick="homePage()">Back Home</button>  
+ </div>  
+</section>  <section id="watch" class="hidden">  
+ <button onclick="homePage()">← Back</button>  
+ <div class="card">  
+  <video id="player" controls playsinline></video>  
+  <h2 id="vtitle"></h2>  
+  <p id="vdesc" class="muted"></p>  
+  <p id="vchannel"></p>  
+  <p id="viewCount" class="muted">Views: 0</p>  
+  <p id="subscriberCount" class="muted">Subscribers: 0</p>  
+  <div class="row">  
+   <button id="likeButton" onclick="likeVideo()">👍 Like</button>  
+   <button id="subButton" onclick="subscribe()">＋ Subscribe</button>  
+   <button onclick="shareVideo()">Share</button>  
+  </div>  
+  <h3>Comments</h3>  
+  <textarea id="comment" placeholder="Write a comment..."></textarea>  
+  <button onclick="addComment()">Post Comment</button>  
+  <div id="comments"></div>  
+ </div>  
+</section>  <section id="profile" class="hidden">  
+ <div class="card">  
+  <h2>My Channel</h2>  
+  <input id="channelName" placeholder="Channel name">  
+  <textarea id="channelDesc" placeholder="Channel description"></textarea>  
+  <button onclick="saveProfile()">Save Profile</button>  
+  <p id="profileStatus" class="status"></p>  
+  <button onclick="homePage()">Back Home</button>  
+ </div>  
+</section>  
+</main>  <script>  
+const SUPABASE_URL="https://vslfjjxtcjsacklmafyc.supabase.co";  
+const SUPABASE_KEY="sb_publishable_QOlKiET0bY9obKkGh0GwTQ_e3ESgC2Y";  
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);  
+  
+let user=null;  
+let videos=[];  
+let current=null;  
+let category="All Videos";  
+let profiles={};  
+  
+const $=id=>document.getElementById(id);  
+  
+const categories=[  
+ "All Videos","Hollywood Movies","Bollywood Movies",  
+ "Pakistani Songs","Sindhi Songs","Other Songs",  
+ "Islamic / Quran / Naat","Dramas","Cartoons",  
+ "Documentaries","News","Other Videos"  
+];  
+  
+function safe(value){  
+ return String(value||"").replace(/[&<>"']/g,c=>({  
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"  
+ }[c]));  
+}  
+  
+function page(id){  
+ ["home","auth","upload","watch","profile"].forEach(name=>{  
+  $(name).classList.toggle("hidden",name!==id);  
+ });  
+}  
+  
+function authPage(){page("auth");}  
+  
+function homePage(){  
+ history.pushState({page:"home"},"",location.pathname);  
+ page("home");  
+ loadVideos();  
+}  
+  
+function uploadPage(){  
+ if(!user){authPage();return;}  
+ page("upload");  
+}  
+  
+function profilePage(){  
+ if(!user){authPage();return;}  
+ page("profile");  
+ getProfile();  
+}  
+  
+function makeCats(){  
+ $("cats").innerHTML="";  
+ categories.forEach(c=>{  
+  const b=document.createElement("button");  
+  b.textContent=c;  
+  b.onclick=()=>chooseCategory(c);  
+  $("cats").appendChild(b);  
+ });  
+}  
+  
+function chooseCategory(c){  
+ category=c;  
+ loadVideos();  
+}  
+  
+async function checkUser(){  
+ try{  
+  const {data,error}=await db.auth.getUser();  
+  if(error)throw error;  
+  user=data.user||null;  
+  $("accountButton").textContent=user?"My Account":"Sign in";  
+  $("accountButton").onclick=user?profilePage:authPage;  
+ }catch(e){  
+  console.error("Auth check:",e.message);  
+ }  
+}  
+  
+async function signup(){  
+ const email=$("email").value.trim();  
+ const password=$("password").value;  
+ if(!email||password.length<6){  
+  $("authStatus").textContent="Email aur kam az kam 6 character password likhein.";  
+  return;  
+ }  
+ const {error}=await db.auth.signUp({email,password});  
+ $("authStatus").textContent=error?error.message:  
+ "Account request sent. Email confirmation required ho sakti hai.";  
+}  
+  
+async function login(){  
+ const email=$("email").value.trim();  
+ const password=$("password").value;  
+ const {error}=await db.auth.signInWithPassword({email,password});  
+ if(error){$("authStatus").textContent=error.message;return;}  
+ await checkUser();  
+ homePage();  
+}  
+  
+async function googleLogin(){  
+ const {error}=await db.auth.signInWithOAuth({  
+  provider:"google",  
+  options:{redirectTo:"https://kkalhoro156-droid.github.io/Ktube-Global/"}  
+ });  
+ if(error)$("authStatus").textContent=error.message;  
+}  
+  
+async function logout(){  
+ const {error}=await db.auth.signOut();  
+ if(error){$("authStatus").textContent=error.message;return;}  
+ user=null;  
+ await checkUser();  
+ homePage();  
+}  
+  
+/* VIDEO LOADING */  
+async function loadVideos(){  
+ const box=$("videos");  
+ if(!box)return;  
+ box.textContent="Loading videos...";  
+  
+ try{  
+  const result=await Promise.race([  
+   db.from("videos").select("*").order("created_at",{ascending:false}),  
+   new Promise((_,reject)=>setTimeout(  
+    ()=>reject(new Error("Connection timeout. Internet check karein.")),15000  
+   ))  
+  ]);  
+  
+  if(result.error)throw result.error;  
+  
+  videos=result.data||[];  
+  profiles={};  
+  
+  const ids=[...new Set(videos.map(v=>v.user_id).filter(Boolean))];  
+  
+  if(ids.length){  
+   try{  
+    const p=await db.from("profiles")  
+     .select("id,full_name,username")  
+     .in("id",ids);  
+    if(!p.error){  
+     (p.data||[]).forEach(x=>profiles[x.id]=x);  
+    }  
+   }catch(profileError){  
+    console.warn("Profile lookup skipped:",profileError);  
+   }  
+  }  
+  
+  const term=$("search").value.toLowerCase();  
+  
+  const found=videos.filter(v=>{  
+   const name=profiles[v.user_id]?.full_name||  
+    profiles[v.user_id]?.username||"Creator";  
+   return (category==="All Videos"||v.category===category)&&  
+    (  
+     (v.title||"").toLowerCase().includes(term)||  
+     name.toLowerCase().includes(term)  
+    );  
+  });  
+  
+  box.innerHTML="";  
+  
+  if(!found.length){  
+   box.textContent="Abhi koi video nahi mili.";  
+   return;  
+  }  
+  
+  found.forEach(v=>{  
+   const div=document.createElement("div");  
+   div.className="item";  
+  
+   const img=document.createElement("img");  
+   img.className="thumb";  
+   img.alt="Video thumbnail";  
+   if(v.thumbnail_url)img.src=v.thumbnail_url;  
+   else img.style.display="none";  
+  
+   const heading=document.createElement("h3");  
+   heading.textContent=v.title||"Untitled video";  
+  
+   const meta=document.createElement("div");  
+   meta.className="muted";  
+   const name=profiles[v.user_id]?.full_name||  
+    profiles[v.user_id]?.username||"K.TUBE Creator";  
+   meta.textContent=name+" · "+(v.category||"Videos")+  
+    " · "+(Number(v.views)||0)+" views";  
+  
+   div.append(img,heading,meta);  
+   div.onclick=()=>openVideo(v.id);  
+   box.appendChild(div);  
+  });  
+  
+ }catch(e){  
+  console.error("Video loading error:",e);  
+  box.textContent="Videos load nahi huin: "+(e.message||"Unknown error");  
+ }  
+}  
+  
+/* VIDEO UPLOAD */  
+async function uploadVideo(){  
+ if(!user){authPage();return;}  
+  
+ const f=$("file").files[0];  
+ const title=$("title").value.trim();  
+ const description=$("desc").value.trim();  
+ const selectedCategory=$("category").value;  
+  
+ if(!f||!title){  
+  $("uploadStatus").textContent="Video file aur title zaroori hain.";  
+  return;  
+ }  
+ if(!f.type.startsWith("video/")||f.size>50*1024*1024){  
+  $("uploadStatus").textContent="Valid video select karein, maximum 50 MB.";  
+  return;  
+ }  
+  
+ $("uploadStatus").textContent="Video uploading...";  
+  
+ try{  
+  const path=user.id+"/"+Date.now()+"_"+f.name.replace(/[^a-zA-Z0-9._-]/g,"_");  
+  const upload=await db.storage.from("ktube-videos")  
+   .upload(path,f,{contentType:f.type});  
+  if(upload.error)throw upload.error;  
+  
+  const videoUrl=db.storage.from("ktube-videos")  
+   .getPublicUrl(path).data.publicUrl;  
+  
+  let imageUrl=null;  
+  const im=$("thumb").files[0];  
+  
+  if(im){  
+   if(!im.type.startsWith("image/"))throw new Error("Thumbnail image select karein.");  
+   const imagePath=user.id+"/thumb_"+Date.now()+"_"+im.name.replace(/[^a-zA-Z0-9._-]/g,"_");  
+   const imageUpload=await db.storage.from("ktube-videos")  
+    .upload(imagePath,im,{contentType:im.type});  
+   if(imageUpload.error)throw imageUpload.error;  
+   imageUrl=db.storage.from("ktube-videos")  
+    .getPublicUrl(imagePath).data.publicUrl;  
+  }  
+  
+  const result=await db.from("videos").insert({  
+   user_id:user.id,  
+   title:title,  
+   description:description,  
+   category:selectedCategory,  
+   video_url:videoUrl,  
+   thumbnail_url:imageUrl  
+  });  
+  
+  if(result.error)throw result.error;  
+  
+  $("uploadStatus").textContent="Video uploaded successfully!";  
+  $("title").value="";  
+  $("desc").value="";  
+  $("file").value="";  
+  $("thumb").value="";  
+  homePage();  
+  
+ }catch(e){  
+  $("uploadStatus").textContent="Upload error: "+e.message;  
+ }  
+}  
+  
+/* OPEN VIDEO */  
+async function openVideo(id){  
+ current=videos.find(v=>v.id===id);  
+ if(!current)return;  
+  
+ history.pushState({videoId:id},"","?v="+encodeURIComponent(id));  
+ page("watch");  
+  
+ $("player").src=current.video_url||"";  
+ $("vtitle").textContent=current.title||"";  
+ $("vdesc").textContent=current.description||"";  
+ $("vchannel").textContent="Channel: "+  
+  (profiles[current.user_id]?.full_name||"K.TUBE Creator");  
+  
+ $("viewCount").textContent="Views: "+(Number(current.views)||0);  
+ $("subscriberCount").textContent="Subscribers: ...";  
+  
+ await incrementView();  
+ await loadLikes();  
+ await loadComments();  
+ await loadSub();  
+ await loadSubscriberCount();  
+}  
+  
+/* INCREMENT VIDEO VIEWS */  
+async function incrementView(){  
+ if(!current)return;  
+  
+ const {data,error}=await db.rpc("increment_video_views",{  
+  video_id:current.id  
+ });  
+  
+ if(error){  
+  console.error("Views counter:",error.message);  
+  $("viewCount").textContent="Views: "+(Number(current.views)||0);  
+  return;  
+ }  
+  
+ current.views=Number(data)||0;  
+ $("viewCount").textContent="Views: "+current.views;  
+}  
+  
+/* LOAD CHANNEL SUBSCRIBER COUNT */  
+async function loadSubscriberCount(){  
+ if(!current)return;  
+  
+ const {data,error}=await db.rpc("get_channel_subscriber_count",{  
+  channel_id:current.user_id  
+ });  
+  
+ if(error){  
+  console.error("Subscriber count:",error.message);  
+  $("subscriberCount").textContent="Subscribers: unavailable";  
+  return;  
+ }  
+  
+ $("subscriberCount").textContent="Subscribers: "+(Number(data)||0);  
+}  
+  
+/* LIKES */  
+async function loadLikes(){  
+ if(!current)return;  
+  
+ const {data,error}=await db.from("likes")  
+  .select("id,user_id").eq("video_id",current.id);  
+  
+ if(error){  
+  $("likeButton").textContent="👍 Like";  
+  return;  
+ }  
+  
+ const rows=data||[];  
+ $("likeButton").textContent="👍 Like ("+rows.length+")";  
+ $("likeButton").style.background=  
+  user&&rows.some(x=>x.user_id===user.id)?"#ff263f":"#444";  
+}  
+  
+async function likeVideo(){  
+ if(!user){authPage();return;}  
+ if(!current)return;  
+  
+ const {data,error}=await db.from("likes")  
+  .select("id").eq("video_id",current.id)  
+  .eq("user_id",user.id).maybeSingle();  
+  
+ if(error){alert(error.message);return;}  
+  
+ const result=data  
+  ?await db.from("likes").delete().eq("id",data.id)  
+  :await db.from("likes").insert({  
+    video_id:current.id,user_id:user.id  
+   });  
+  
+ if(result.error)alert(result.error.message);  
+ else loadLikes();  
+}  
+  
+/* COMMENTS */  
+async function loadComments(){  
+ if(!current)return;  
+ const box=$("comments");  
+ box.textContent="Loading comments...";  
+  
+ const {data,error}=await db.from("comments")  
+  .select("*").eq("video_id",current.id)  
+  .order("created_at",{ascending:false});  
+  
+ if(error){  
+  box.textContent=error.message;  
+  return;  
+ }  
+  
+ box.innerHTML="";  
+ if(!data||!data.length){  
+  box.textContent="No comments yet.";  
+  return;  
+ }  
+  
+ data.forEach(c=>{  
+  const div=document.createElement("div");  
+  div.className="card";  
+  div.textContent=c.content||"";  
+  box.appendChild(div);  
+ });  
+}  
+  
+async function addComment(){  
+ if(!user){authPage();return;}  
+ if(!current)return;  
+  
+ const content=$("comment").value.trim();  
+ if(!content)return;  
+  
+ const {error}=await db.from("comments").insert({  
+  video_id:current.id,  
+  user_id:user.id,  
+  content:content  
+ });  
+  
+ if(error){alert(error.message);return;}  
+  
+ $("comment").value="";  
+ loadComments();  
+}  
+  
+/* SUBSCRIPTIONS */  
+async function loadSub(){  
+ if(!current)return;  
+  
+ if(!user){  
+  $("subButton").textContent="＋ Subscribe";  
+  return;  
+ }  
+  
+ const {data,error}=await db.from("subscriptions")  
+  .select("id")  
+  .eq("subscriber_id",user.id)  
+  .eq("channel_id",current.user_id)  
+  .maybeSingle();  
+  
+ if(error){  
+  $("subButton").textContent="＋ Subscribe";  
+  return;  
+ }  
+  
+ $("subButton").textContent=data?"Subscribed":"＋ Subscribe";  
+}  
+  
+async function subscribe(){  
+ if(!user){authPage();return;}  
+ if(!current)return;  
+ if(user.id===current.user_id){  
+  alert("You cannot subscribe to your own channel.");  
+  return;  
+ }  
+  
+ const {data,error}=await db.from("subscriptions")  
+  .select("id")  
+  .eq("subscriber_id",user.id)  
+  .eq("channel_id",current.user_id)  
+  .maybeSingle();  
+  
+ if(error){alert(error.message);return;}  
+  
+ const result=data  
+  ?await db.from("subscriptions").delete().eq("id",data.id)  
+  :await db.from("subscriptions").insert({  
+    subscriber_id:user.id,  
+    channel_id:current.user_id  
+   });  
+  
+ if(result.error){  
+  alert(result.error.message);  
+ }else{  
+  await loadSub();  
+  await loadSubscriberCount();  
+ }  
+}  
+  
+/* SHARE VIDEO */  
+async function shareVideo(){  
+ if(!current)return;  
+ const link=location.origin+location.pathname+"?v="+current.id;  
+  
+ try{  
+  if(navigator.share){  
+   await navigator.share({title:current.title,url:link});  
+  }else{  
+   await navigator.clipboard.writeText(link);  
+   alert("Video link copied!");  
+  }  
+ }catch(e){  
+  console.log("Share cancelled or unavailable");  
+ }  
+}  
+  
+/* CHANNEL PROFILE */  
+async function getProfile(){  
+ if(!user)return;  
+  
+ const {data,error}=await db.from("profiles")  
+  .select("*").eq("id",user.id).maybeSingle();  
+  
+ if(error){  
+  $("profileStatus").textContent=error.message;  
+  return;  
+ }  
+  
+ $("channelName").value=data?.full_name||data?.username||"";  
+ $("channelDesc").value=data?.channel_description||"";  
+}  
+  
+async function saveProfile(){  
+ if(!user)return;  
+  
+ const {error}=await db.from("profiles").upsert({  
+  id:user.id,  
+  full_name:$("channelName").value.trim(),  
+  channel_description:$("channelDesc").value.trim()  
+ });  
+  
+ $("profileStatus").textContent=error?  
+  error.message:"Channel saved!";  
+}  
+  
+/* BROWSER BACK BUTTON */  
+window.onpopstate=()=>{  
+ const id=new URLSearchParams(location.search).get("v");  
+ if(id){  
+  const video=videos.find(v=>v.id===id);  
+  if(video){  
+   current=video;  
+   page("watch");  
+   $("player").src=video.video_url||"";  
+   $("vtitle").textContent=video.title||"";  
+   $("vdesc").textContent=video.description||"";  
+   $("vchannel").textContent="Channel: "+  
+    (profiles[video.user_id]?.full_name||"K.TUBE Creator");  
+   $("viewCount").textContent="Views: "+(Number(video.views)||0);  
+   loadLikes();  
+   loadComments();  
+   loadSub();  
+   loadSubscriberCount();  
+  }else{  
+   page("home");  
+   loadVideos();  
+  }  
+ }else{  
+  page("home");  
+  loadVideos();  
+ }  
+};  
+  
+/* AUTH STATE */  
+db.auth.onAuthStateChange((event,session)=>{  
+ user=session?.user||null;  
+ $("accountButton").textContent=user?"My Account":"Sign in";  
+ $("accountButton").onclick=user?profilePage:authPage;  
+});  
+  
+/* START APP */  
+makeCats();  
+checkUser().then(()=>loadVideos());  
+</script>  </body>  
+</html>  
