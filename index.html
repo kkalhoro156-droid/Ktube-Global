@@ -3,50 +3,61 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#111111">
+<meta name="theme-color" content="#0f0f0f">
 <title>K.TUBE GLOBAL</title>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#0d0d0f;color:#fff;font-family:Arial,sans-serif}
+body{margin:0;background:#0f0f0f;color:#f5f5f5;font-family:Arial,sans-serif}
 button,input,textarea,select{font:inherit}
-button{cursor:pointer;border:0;border-radius:9px;padding:11px 15px;background:#e50920;color:white;font-weight:bold}
-button:disabled{opacity:.5}
-input,textarea,select{width:100%;padding:12px;background:#202024;color:white;border:1px solid #393940;border-radius:9px;margin:6px 0 12px}
-header{position:sticky;top:0;z-index:10;background:#151518;border-bottom:1px solid #333;padding:12px;display:flex;align-items:center;gap:12px}
-.logo{font-size:23px;font-weight:900;color:#ff263e;white-space:nowrap}
+button{cursor:pointer;border:0;border-radius:22px;padding:10px 15px;background:#272727;color:white;font-weight:600}
+button:hover{background:#414141}
+button:disabled{opacity:.5;cursor:not-allowed}
+input,textarea,select{width:100%;padding:12px;background:#202020;color:white;border:1px solid #393939;border-radius:10px;margin:7px 0 13px}
+header{position:sticky;top:0;z-index:20;background:#0f0f0f;border-bottom:1px solid #292929;padding:10px 18px;display:flex;align-items:center;gap:15px}
+.logo{font-size:24px;font-weight:900;color:#ff263e;white-space:nowrap}
 .logo span{color:white}
-.search{flex:1;min-width:80px}
-.search input{margin:0}
-.wrap{max-width:1250px;margin:auto;padding:14px}
-.nav{display:flex;gap:8px;overflow:auto;padding:10px 0}
-.nav button{white-space:nowrap;background:#29292e}
-.nav button.active{background:#e50920}
-h2{font-size:20px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px}
-.video-card{background:#19191d;border:1px solid #303036;border-radius:12px;overflow:hidden}
-.video-card video,.thumb{width:100%;aspect-ratio:16/9;object-fit:cover;background:#000;display:block}
-.video-info{padding:11px}
-.video-info h3{font-size:15px;margin:5px 0 8px;line-height:1.4}
+.search{flex:1;max-width:700px;margin:auto}
+.search input{border-radius:30px;margin:0;padding:12px 18px}
+header button{white-space:nowrap}
+.layout{display:flex;min-height:calc(100vh - 60px)}
+.sidebar{width:205px;flex-shrink:0;padding:15px 10px;border-right:1px solid #292929;position:sticky;top:60px;height:calc(100vh - 60px);overflow:auto}
+.sidebar button{display:block;width:100%;text-align:left;border-radius:9px;margin:4px 0;background:transparent;padding:13px}
+.sidebar button:hover,.sidebar button.active{background:#292929}
+main{min-width:0;flex:1;padding:14px 22px 35px}
+.categories{display:flex;gap:9px;overflow:auto;position:sticky;top:60px;background:#0f0f0f;padding:9px 0;z-index:8}
+.categories button{border-radius:8px;white-space:nowrap}
+.categories button.active{background:#eee;color:#111}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:20px 15px}
+.video-card{min-width:0;border-radius:12px;overflow:hidden}
+.thumb{width:100%;aspect-ratio:16/9;object-fit:cover;background:#252525;display:block;border-radius:12px}
+.video-info{padding:9px 3px}
+.video-info h3{font-size:15px;line-height:1.4;margin:4px 0 7px}
 .muted{color:#aaa;font-size:12px}
-.actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
-.actions button{font-size:12px;padding:8px 10px}
-.panel{background:#19191d;border:1px solid #333;border-radius:12px;padding:15px;margin:12px 0}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.actions button{font-size:12px;padding:8px 11px}
+.primary{background:#e50920}
+.panel{background:#191919;border:1px solid #303030;border-radius:13px;padding:16px;margin:12px 0}
 .hidden{display:none!important}
-#message{position:fixed;bottom:15px;left:50%;transform:translateX(-50%);background:#333;padding:12px 18px;border-radius:10px;z-index:50;max-width:90%;display:none}
-#player video{width:100%;max-height:65vh;background:#000;border-radius:12px}
-#player h2{line-height:1.4}
-footer{text-align:center;color:#999;padding:30px 10px;font-size:12px}
-hr{border:0;border-top:1px solid #333;margin:18px 0}
-@media(max-width:600px){
- header{gap:7px;padding:9px}
+h2{font-size:21px}
+#player video{width:100%;max-height:70vh;background:#000;border-radius:12px}
+#message{display:none;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:99;background:#333;padding:13px 18px;border-radius:10px;max-width:90%}
+#commentList .panel{margin:8px 0}
+footer{text-align:center;color:#999;padding:30px}
+.badge{background:#292929;border-radius:5px;padding:4px 7px;font-size:11px}
+@media(max-width:700px){
+ header{padding:9px;gap:7px}
  .logo{font-size:19px}
- .wrap{padding:10px}
- .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
- .video-info{padding:8px}
+ header button{font-size:12px;padding:9px}
+ .layout{display:block}
+ .sidebar{position:sticky;top:57px;width:100%;height:auto;display:flex;overflow:auto;z-index:15;background:#0f0f0f;border:0;border-bottom:1px solid #292929;padding:5px}
+ .sidebar button{width:auto;white-space:nowrap;margin:2px;padding:9px 12px;font-size:12px}
+ main{padding:8px 10px 25px}
+ .categories{top:105px}
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 9px}
  .video-info h3{font-size:13px}
+ .video-info{padding:6px 2px}
 }
 </style>
 </head>
@@ -54,125 +65,137 @@ hr{border:0;border-top:1px solid #333;margin:18px 0}
 <body>
 
 <header>
- <div class="logo">K.<span>TUBE</span></div>
+ <div class="logo">▶ K.<span>TUBE</span></div>
  <div class="search">
-  <input id="searchBox" placeholder="Search videos..." oninput="renderVideos()">
+  <input id="searchBox" placeholder="Search videos, tags..." oninput="renderVideos()">
  </div>
  <button onclick="showPage('account')">Account</button>
 </header>
 
-<main class="wrap">
+<div class="layout">
+<aside class="sidebar">
+ <button onclick="showPage('home')">🏠 Home</button>
+ <button onclick="showPage('shorts')">⚡ Shorts</button>
+ <button onclick="showPage('subscriptions')">📺 Subscriptions</button>
+ <button onclick="showPage('history')">🕘 History</button>
+ <button onclick="showPage('watchlater')">⏰ Watch Later</button>
+ <button onclick="showPage('liked')">❤️ Liked Videos</button>
+ <hr>
+ <button onclick="showPage('upload')">⬆ Upload Video</button>
+ <button onclick="showPage('profile')">👤 My Channel</button>
+ <button onclick="showPage('account')">⚙ Account</button>
+</aside>
 
- <div class="nav">
-  <button class="active" onclick="showPage('home',this)">Home</button>
-  <button onclick="showPage('shorts',this)">Shorts</button>
-  <button onclick="showPage('upload',this)">Upload</button>
-  <button onclick="showPage('subscriptions',this)">Subscriptions</button>
-  <button onclick="showPage('profile',this)">My Channel</button>
+<main>
+
+<section id="homePage">
+ <div class="categories" id="categories">
+  <button class="active" onclick="setCategory('All',this)">All</button>
+  <button onclick="setCategory('Music',this)">Music</button>
+  <button onclick="setCategory('Movies',this)">Movies</button>
+  <button onclick="setCategory('Cartoons',this)">Cartoons</button>
+  <button onclick="setCategory('Islamic',this)">Islamic</button>
+  <button onclick="setCategory('Gaming',this)">Gaming</button>
+  <button onclick="setCategory('Education',this)">Education</button>
+  <button onclick="setCategory('Vlogs',this)">Vlogs</button>
+  <button onclick="setCategory('Sports',this)">Sports</button>
  </div>
+ <h2>Explore K.TUBE GLOBAL</h2>
+ <div id="videoGrid" class="grid">Loading videos...</div>
+</section>
 
- <section id="homePage">
-  <h2>Explore K.TUBE</h2>
-  <div class="nav" id="categories">
-   <button class="active" onclick="setCategory('All',this)">All</button>
-   <button onclick="setCategory('Music',this)">Music</button>
-   <button onclick="setCategory('Movies',this)">Movies</button>
-   <button onclick="setCategory('Cartoons',this)">Cartoons</button>
-   <button onclick="setCategory('Islamic',this)">Islamic</button>
-   <button onclick="setCategory('Gaming',this)">Gaming</button>
-   <button onclick="setCategory('Education',this)">Education</button>
-   <button onclick="setCategory('Vlogs',this)">Vlogs</button>
-   <button onclick="setCategory('Sports',this)">Sports</button>
+<section id="shortsPage" class="hidden">
+ <h2>⚡ K.TUBE Shorts</h2>
+ <div id="shortGrid" class="grid"></div>
+</section>
+
+<section id="uploadPage" class="hidden">
+ <h2>Upload Video</h2>
+ <div class="panel">
+  <label>Video title</label>
+  <input id="upTitle" maxlength="120" placeholder="Enter video title">
+  <label>Description</label>
+  <textarea id="upDescription" rows="4" placeholder="Describe your video"></textarea>
+  <label>Category</label>
+  <select id="upCategory">
+   <option>Music</option><option>Movies</option><option>Cartoons</option>
+   <option>Islamic</option><option>Gaming</option><option>Education</option>
+   <option>Vlogs</option><option>Sports</option><option>Other</option>
+  </select>
+  <label>Tags (comma separated)</label>
+  <input id="upTags" placeholder="Sindhi, Urdu, Pakistan">
+  <label>Video file</label>
+  <input id="upVideo" type="file" accept="video/*">
+  <label>Thumbnail image (optional)</label>
+  <input id="upThumb" type="file" accept="image/*">
+  <label><input id="upShort" type="checkbox" style="width:auto"> Upload as Short</label>
+  <button class="primary" id="uploadButton" onclick="uploadVideo()">Upload Video</button>
+  <p class="muted">Sign in required. Upload limits depend on your storage settings.</p>
+ </div>
+</section>
+
+<section id="watchPage" class="hidden">
+ <button onclick="showPage('home')">← Back to Home</button>
+ <div id="player" class="panel"></div>
+ <div class="panel">
+  <h3>Comments</h3>
+  <input id="newComment" maxlength="1000" placeholder="Write a comment...">
+  <button class="primary" onclick="postComment()">Post Comment</button>
+  <div id="commentList"></div>
+ </div>
+</section>
+
+<section id="accountPage" class="hidden">
+ <h2>Your Account</h2>
+ <div class="panel">
+  <div id="authStatus">Checking account...</div>
+  <div id="loginArea">
+   <input id="email" type="email" placeholder="Email address">
+   <input id="password" type="password" placeholder="Password (minimum 6 characters)">
+   <button class="primary" onclick="signIn()">Sign In</button>
+   <button onclick="signUp()">Create Account</button>
+   <button onclick="googleSignIn()">Continue with Google</button>
   </div>
-  <div id="videoGrid" class="grid">
-   <div class="panel">Loading K.TUBE videos...</div>
-  </div>
- </section>
+  <button id="logoutButton" class="hidden" onclick="signOut()">Sign Out</button>
+ </div>
+</section>
 
- <section id="shortsPage" class="hidden">
-  <h2>K.TUBE Shorts</h2>
-  <p class="muted">Short videos uploaded by creators.</p>
-  <div id="shortGrid" class="grid"></div>
- </section>
+<section id="profilePage" class="hidden">
+ <h2>My Channel</h2>
+ <div class="panel">
+  <div id="profileInfo"></div>
+  <label>Channel name</label>
+  <input id="displayName" placeholder="Channel name">
+  <label>Channel description</label>
+  <textarea id="bio" rows="3" placeholder="About your channel"></textarea>
+  <button class="primary" onclick="saveProfile()">Save Channel</button>
+ </div>
+ <h2>My Videos</h2>
+ <div id="myVideos" class="grid"></div>
+</section>
 
- <section id="uploadPage" class="hidden">
-  <h2>Upload Your Video</h2>
-  <div class="panel">
-   <label>Video title</label>
-   <input id="upTitle" maxlength="120" placeholder="Enter video title">
+<section id="subscriptionsPage" class="hidden">
+ <h2>Subscriptions</h2>
+ <div id="subscribedVideos" class="grid"></div>
+</section>
 
-   <label>Description</label>
-   <textarea id="upDescription" rows="3" placeholder="Write about your video"></textarea>
+<section id="historyPage" class="hidden">
+ <h2>Watch History</h2>
+ <div id="historyGrid" class="grid"></div>
+</section>
 
-   <label>Category</label>
-   <select id="upCategory">
-    <option>Music</option><option>Movies</option><option>Cartoons</option>
-    <option>Islamic</option><option>Gaming</option><option>Education</option>
-    <option>Vlogs</option><option>Sports</option><option>Other</option>
-   </select>
+<section id="watchlaterPage" class="hidden">
+ <h2>Watch Later</h2>
+ <div id="laterGrid" class="grid"></div>
+</section>
 
-   <label>Tags (comma separated)</label>
-   <input id="upTags" placeholder="Sindhi, Urdu, Pakistan, Music">
-
-   <label>Video file</label>
-   <input id="upVideo" type="file" accept="video/*">
-
-   <label>Thumbnail (optional)</label>
-   <input id="upThumb" type="file" accept="image/*">
-
-   <button id="uploadButton" onclick="uploadVideo()">Upload Video</button>
-   <p class="muted">Sign in is required. Upload size is limited by your storage settings.</p>
-  </div>
- </section>
-
- <section id="accountPage" class="hidden">
-  <h2>Your K.TUBE Account</h2>
-  <div class="panel">
-   <div id="authStatus">Checking account...</div>
-   <div id="loginArea">
-    <input id="email" type="email" placeholder="Email address">
-    <input id="password" type="password" placeholder="Password">
-    <button onclick="signIn()">Sign In</button>
-    <button onclick="signUp()">Create Account</button>
-    <button onclick="googleSignIn()">Continue with Google</button>
-   </div>
-   <button id="logoutButton" class="hidden" onclick="signOut()">Sign Out</button>
-  </div>
- </section>
-
- <section id="profilePage" class="hidden">
-  <h2>My Channel</h2>
-  <div class="panel">
-   <div id="profileInfo">Sign in to manage your channel.</div>
-   <label>Channel name</label>
-   <input id="displayName" placeholder="Your channel name">
-   <label>About your channel</label>
-   <textarea id="bio" rows="3" placeholder="Tell viewers about your channel"></textarea>
-   <button onclick="saveProfile()">Save Profile</button>
-  </div>
-  <h2>My Videos</h2>
-  <div id="myVideos" class="grid"></div>
- </section>
-
- <section id="subscriptionsPage" class="hidden">
-  <h2>Subscriptions</h2>
-  <div id="subscribedVideos" class="grid"></div>
- </section>
-
- <section id="watchPage" class="hidden">
-  <button onclick="showPage('home')">← Back</button>
-  <div id="player" class="panel"></div>
-  <div class="panel">
-   <h3>Comments</h3>
-   <div id="commentForm">
-    <input id="newComment" placeholder="Write a comment...">
-    <button onclick="postComment()">Post Comment</button>
-   </div>
-   <div id="commentList"></div>
-  </div>
- </section>
+<section id="likedPage" class="hidden">
+ <h2>Liked Videos</h2>
+ <div id="likedGrid" class="grid"></div>
+</section>
 
 </main>
+</div>
 
 <footer>
  <div class="logo">K.<span>TUBE GLOBAL</span></div>
@@ -184,420 +207,341 @@ hr{border:0;border-top:1px solid #333;margin:18px 0}
 <div id="message"></div>
 
 <script>
-/* K.TUBE SUPABASE CONNECTION */
-const SUPABASE_URL = "https://vslfjjxtcjsacklmafyc.supabase.co";
-const SUPABASE_KEY = "sb_publishable_QOlKiET0bY9obKkGh0GwTQ_e3ESgC2Y";
-const BUCKET = "ktube-videos";
+/* K.TUBE DATABASE CONNECTION */
+const SUPABASE_URL="https://vslfjjxtcjsacklmafyc.supabase.co";
+const SUPABASE_KEY="sb_publishable_QOlKiET0bY9obKkGh0GwTQ_e3ESgC2Y";
+const BUCKET="ktube-videos";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let currentUser=null;
+let allVideos=[];
+let currentVideo=null;
+let activeCategory="All";
 
-let currentUser = null;
-let allVideos = [];
-let currentVideo = null;
-let activeCategory = "All";
-
-function msg(text){
+function msg(t){
  const el=document.getElementById("message");
- el.textContent=text;
+ el.textContent=t;
  el.style.display="block";
- setTimeout(()=>el.style.display="none",3500);
+ clearTimeout(window.msgTimer);
+ window.msgTimer=setTimeout(()=>el.style.display="none",3500);
 }
-
-function escapeHTML(value){
- return String(value??"").replace(/[&<>"']/g,c=>({
+function esc(v){
+ return String(v??"").replace(/[&<>"']/g,c=>({
  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
  })[c]);
 }
-
 function requireLogin(){
- if(!currentUser){
-  msg("Please sign in first.");
-  showPage("account");
-  return false;
- }
+ if(!currentUser){msg("Please sign in first.");showPage("account");return false}
  return true;
 }
-
-function showPage(page,button){
- const pages=["home","shorts","upload","account","profile","subscriptions","watch"];
+function getSaved(key){
+ try{return JSON.parse(localStorage.getItem(key)||"[]")}catch(e){return []}
+}
+function saveIds(key,ids){
+ localStorage.setItem(key,JSON.stringify([...new Set(ids.map(String))]));
+}
+function showPage(page){
+ const pages=["home","shorts","upload","watch","account","profile","subscriptions","history","watchlater","liked"];
  pages.forEach(p=>{
   const el=document.getElementById(p+"Page");
   if(el)el.classList.toggle("hidden",p!==page);
  });
- if(button){
-  document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
-  button.classList.add("active");
- }
  if(page==="profile")loadProfile();
  if(page==="subscriptions")loadSubscriptions();
+ if(page==="history")renderSaved("history","historyGrid");
+ if(page==="watchlater")renderSaved("later","laterGrid");
+ if(page==="liked")loadLiked();
  if(page==="upload"&&!currentUser)msg("Sign in before uploading.");
 }
-
-function setCategory(category,button){
- activeCategory=category;
+function setCategory(cat,button){
+ activeCategory=cat;
  document.querySelectorAll("#categories button").forEach(b=>b.classList.remove("active"));
  if(button)button.classList.add("active");
  renderVideos();
 }
-
 async function refreshAuth(){
  const {data}=await db.auth.getSession();
  currentUser=data.session?.user||null;
-
- document.getElementById("authStatus").textContent=
-  currentUser?"Signed in: "+currentUser.email:"You are not signed in.";
-
+ document.getElementById("authStatus").textContent=currentUser?
+ "Signed in: "+currentUser.email:"You are not signed in.";
  document.getElementById("loginArea").classList.toggle("hidden",!!currentUser);
  document.getElementById("logoutButton").classList.toggle("hidden",!currentUser);
 }
-
 async function signUp(){
  const email=document.getElementById("email").value.trim();
  const password=document.getElementById("password").value;
- if(!email||password.length<6){msg("Enter email and a password with at least 6 characters.");return}
+ if(!email||password.length<6){msg("Enter email and password of at least 6 characters.");return}
  const {error}=await db.auth.signUp({email,password});
- msg(error?error.message:"Account request sent. Check your email if confirmation is enabled.");
+ msg(error?error.message:"Account request sent. Check your email.");
  await refreshAuth();
 }
-
 async function signIn(){
  const email=document.getElementById("email").value.trim();
  const password=document.getElementById("password").value;
  const {error}=await db.auth.signInWithPassword({email,password});
  if(error){msg(error.message);return}
- await refreshAuth();
- msg("Welcome to K.TUBE!");
+ await refreshAuth();msg("Welcome to K.TUBE!");
 }
-
 async function googleSignIn(){
  const {error}=await db.auth.signInWithOAuth({
   provider:"google",
-  options:{redirectTo:location.href.split("?")[0]}
+  options:{redirectTo:location.origin+location.pathname}
  });
  if(error)msg(error.message);
 }
-
 async function signOut(){
  const {error}=await db.auth.signOut();
  if(error){msg(error.message);return}
- currentUser=null;
- await refreshAuth();
- msg("Signed out.");
- showPage("home");
+ currentUser=null;await refreshAuth();showPage("home");msg("Signed out.");
 }
 
 async function loadVideos(){
  const grid=document.getElementById("videoGrid");
- grid.innerHTML='<div class="panel">Loading videos...</div>';
-
- const {data,error}=await db.from("videos")
-  .select("*").order("created_at",{ascending:false}).limit(100);
-
- if(error){
-  grid.innerHTML='<div class="panel">Could not load videos: '+escapeHTML(error.message)+'</div>';
-  return;
- }
+ grid.textContent="Loading videos...";
+ const {data,error}=await db.from("videos").select("*")
+  .order("created_at",{ascending:false}).limit(200);
+ if(error){grid.textContent="Video loading error: "+error.message;return}
  allVideos=data||[];
  renderVideos();
 }
-
 function videoCard(v){
- const title=escapeHTML(v.title||"Untitled video");
- const category=escapeHTML(v.category||"Other");
- const thumb=v.thumbnail_url||"";
- const id=String(v.id||"");
- const safeId=escapeHTML(id);
-
- return `
- <article class="video-card">
-  ${thumb
-   ? `<img class="thumb" src="${escapeHTML(thumb)}" alt="">`
-   : `<div class="thumb"></div>`}
-  <div class="video-info">
-   <h3>${title}</h3>
-   <div class="muted">${category}</div>
-   <div class="muted">${escapeHTML((v.tags||[]).join(", "))}</div>
-   <div class="actions">
-    <button onclick="watchVideo('${safeId}')">Watch</button>
-    <button onclick="likeVideo('${safeId}')">♥ Like</button>
-    <button onclick="shareVideo('${safeId}')">Share</button>
-   </div>
+ const id=esc(v.id);
+ const title=esc(v.title||"Untitled video");
+ const category=esc(v.category||"Other");
+ const thumb=v.thumbnail_url?`<img class="thumb" src="${esc(v.thumbnail_url)}" alt="Video thumbnail">`:
+ `<div class="thumb"></div>`;
+ const views=Number(v.view_count||0);
+ return `<article class="video-card">
+ ${thumb}
+ <div class="video-info">
+  <h3>${title}</h3>
+  <div class="muted">${category} · ${views} views</div>
+  <div class="actions">
+   <button class="primary" onclick="watchVideo('${id}')">▶ Watch</button>
+   <button onclick="addLater('${id}')">＋ Watch Later</button>
+   <button onclick="shareVideo('${id}')">↗ Share</button>
   </div>
+ </div>
  </article>`;
 }
-
 function renderVideos(){
- const term=document.getElementById("searchBox").value.trim().toLowerCase();
-
- let list=allVideos.filter(v=>{
-  const matchesCategory=activeCategory==="All"||v.category===activeCategory;
-  const haystack=[v.title,v.description,v.category,(v.tags||[]).join(" ")].join(" ").toLowerCase();
-  return matchesCategory&&haystack.includes(term);
+ const term=(document.getElementById("searchBox")?.value||"").trim().toLowerCase();
+ const list=allVideos.filter(v=>{
+  const tags=Array.isArray(v.tags)?v.tags.join(" "):String(v.tags||"");
+  const hay=[v.title,v.description,v.category,tags].join(" ").toLowerCase();
+  const categoryMatch=activeCategory==="All"||
+   String(v.category||"").toLowerCase()===activeCategory.toLowerCase();
+  return categoryMatch&&(!term||hay.includes(term));
  });
-
  document.getElementById("videoGrid").innerHTML=
-  list.map(videoCard).join("")||'<div class="panel">No videos found. Upload the first video!</div>';
-
+  list.map(videoCard).join("")||'<div class="panel">No videos found. Try another search.</div>';
  const shorts=allVideos.filter(v=>v.is_short===true);
  document.getElementById("shortGrid").innerHTML=
   shorts.map(videoCard).join("")||'<div class="panel">No Shorts uploaded yet.</div>';
 }
-
 async function uploadVideo(){
  if(!requireLogin())return;
-
  const title=document.getElementById("upTitle").value.trim();
  const description=document.getElementById("upDescription").value.trim();
  const category=document.getElementById("upCategory").value;
- const tags=document.getElementById("upTags").value.split(",").map(t=>t.trim()).filter(Boolean);
- const videoFile=document.getElementById("upVideo").files[0];
- const thumbFile=document.getElementById("upThumb").files[0];
- const button=document.getElementById("uploadButton");
-
- if(!title||!videoFile){msg("Enter a title and select a video.");return}
- if(!videoFile.type.startsWith("video/")){msg("Please choose a video file.");return}
-
- button.disabled=true;
- button.textContent="Uploading...";
-
+ const tags=document.getElementById("upTags").value.split(",").map(x=>x.trim()).filter(Boolean);
+ const file=document.getElementById("upVideo").files[0];
+ const thumb=document.getElementById("upThumb").files[0];
+ const isShort=document.getElementById("upShort").checked;
+ const btn=document.getElementById("uploadButton");
+ if(!title||!file){msg("Enter a title and select a video.");return}
+ if(!file.type.startsWith("video/")){msg("Choose a video file.");return}
+ btn.disabled=true;btn.textContent="Uploading...";
  try{
-  const safeName=videoFile.name.replace(/[^a-zA-Z0-9._-]/g,"_");
-  const videoPath=currentUser.id+"/"+Date.now()+"_"+safeName;
-
-  const {error:videoError}=await db.storage.from(BUCKET).upload(videoPath,videoFile);
-  if(videoError)throw videoError;
-
-  const {data:videoPublic}=db.storage.from(BUCKET).getPublicUrl(videoPath);
+  const clean=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+  const path=currentUser.id+"/"+Date.now()+"_"+clean;
+  const {error:upErr}=await db.storage.from(BUCKET).upload(path,file);
+  if(upErr)throw upErr;
+  const videoUrl=db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
   let thumbnailUrl=null;
-
-  if(thumbFile){
-   const thumbPath=currentUser.id+"/thumb_"+Date.now()+"_"+thumbFile.name.replace(/[^a-zA-Z0-9._-]/g,"_");
-   const {error:thumbError}=await db.storage.from(BUCKET).upload(thumbPath,thumbFile);
-   if(thumbError)throw thumbError;
-   thumbnailUrl=db.storage.from(BUCKET).getPublicUrl(thumbPath).data.publicUrl;
+  if(thumb){
+   const tpath=currentUser.id+"/thumb_"+Date.now()+"_"+thumb.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+   const {error}=await db.storage.from(BUCKET).upload(tpath,thumb);
+   if(error)throw error;
+   thumbnailUrl=db.storage.from(BUCKET).getPublicUrl(tpath).data.publicUrl;
   }
-
-  const {error:insertError}=await db.from("videos").insert({
-   user_id:currentUser.id,
-   title,
-   description,
-   category,
-   tags,
-   video_url:videoPublic.publicUrl,
-   thumbnail_url:thumbnailUrl
-  });
-
-  if(insertError)throw insertError;
-
+  const row={user_id:currentUser.id,title,description,category,tags,
+   video_url:videoUrl,thumbnail_url:thumbnailUrl,is_short:isShort};
+  const {error:insertErr}=await db.from("videos").insert(row);
+  if(insertErr)throw insertErr;
   msg("Video uploaded successfully!");
-  document.getElementById("upTitle").value="";
-  document.getElementById("upDescription").value="";
-  document.getElementById("upTags").value="";
-  document.getElementById("upVideo").value="";
-  document.getElementById("upThumb").value="";
-  await loadVideos();
-  showPage("home");
-
- }catch(error){
-  msg("Upload error: "+error.message);
- }finally{
-  button.disabled=false;
-  button.textContent="Upload Video";
- }
+  ["upTitle","upDescription","upTags","upVideo","upThumb"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("upShort").checked=false;
+  await loadVideos();showPage("home");
+ }catch(e){msg("Upload failed: "+e.message)}
+ finally{btn.disabled=false;btn.textContent="Upload Video"}
 }
-
 async function watchVideo(id){
  const v=allVideos.find(x=>String(x.id)===String(id));
  if(!v){msg("Video not found. Refresh the page.");return}
  currentVideo=v;
  showPage("watch");
-
+ const isOwner=currentUser&&currentUser.id===v.user_id;
  document.getElementById("player").innerHTML=`
-  <video controls playsinline preload="metadata" src="${escapeHTML(v.video_url||"")}"></video>
-  <h2>${escapeHTML(v.title||"Untitled")}</h2>
-  <p>${escapeHTML(v.description||"")}</p>
-  <p class="muted">${escapeHTML(v.category||"")}</p>
+  <video controls playsinline preload="metadata" src="${esc(v.video_url)}"></video>
+  <h2>${esc(v.title)}</h2>
+  <p>${esc(v.description||"")}</p>
+  <p class="muted">${esc(v.category||"Other")} · ${Number(v.view_count||0)} views</p>
   <div class="actions">
-   <button onclick="likeVideo('${escapeHTML(v.id)}')">♥ Like</button>
-   <button onclick="subscribe('${escapeHTML(v.user_id)}')">Subscribe</button>
-   <button onclick="shareVideo('${escapeHTML(v.id)}')">Share</button>
+   <button class="primary" onclick="likeVideo('${esc(v.id)}')">♥ Like</button>
+   <button onclick="subscribe('${esc(v.user_id)}')">Subscribe</button>
+   <button onclick="addLater('${esc(v.id)}')">＋ Watch Later</button>
+   <button onclick="shareVideo('${esc(v.id)}')">↗ Share</button>
   </div>
-  <p class="muted">Creator ID: ${escapeHTML(v.user_id||"")}</p>
-  <div id="videoCounts" class="muted"></div>
- `;
-
- await loadComments(v.id);
- await loadCounts(v.id);
+  <p class="muted">Creator: ${isOwner?"Your channel":"K.TUBE creator"}</p>
+  <div id="videoCounts" class="muted">Loading counts...</div>`;
+ const history=getSaved("ktube_history");
+ saveIds("ktube_history",[String(id),...history]);
+ const {error}=await db.rpc("increment_video_views",{video_id:id});
+ if(error)console.warn("View count:",error.message);
+ await loadCounts(id);
+ await loadComments(id);
 }
-
-async function likeVideo(videoId){
+async function loadCounts(id){
+ const [likes,comments,video]=await Promise.all([
+  db.from("likes").select("*",{count:"exact",head:true}).eq("video_id",id),
+  db.from("comments").select("*",{count:"exact",head:true}).eq("video_id",id),
+  db.from("videos").select("view_count").eq("id",id).maybeSingle()
+ ]);
+ const box=document.getElementById("videoCounts");
+ if(box)box.textContent=
+ "Views: "+(video.data?.view_count??"—")+
+ " · Likes: "+(likes.count??"—")+
+ " · Comments: "+(comments.count??"—");
+}
+async function likeVideo(id){
  if(!requireLogin())return;
-
- const {data:existing,error:checkError}=await db.from("likes")
-  .select("*").eq("video_id",videoId).eq("user_id",currentUser.id).maybeSingle();
-
- if(checkError){msg("Like check: "+checkError.message);return}
-
- if(existing){
+ const {data:old,error:check}=await db.from("likes").select("*")
+  .eq("video_id",id).eq("user_id",currentUser.id).maybeSingle();
+ if(check){msg("Like check: "+check.message);return}
+ if(old){
   const {error}=await db.from("likes").delete()
-   .eq("video_id",videoId).eq("user_id",currentUser.id);
+   .eq("video_id",id).eq("user_id",currentUser.id);
   if(error){msg(error.message);return}
   msg("Like removed.");
  }else{
-  const {error}=await db.from("likes").insert({
-   video_id:videoId,user_id:currentUser.id
-  });
+  const {error}=await db.from("likes").insert({video_id:id,user_id:currentUser.id});
   if(error){msg("Like failed: "+error.message);return}
   msg("Liked!");
  }
- await loadCounts(videoId);
+ await loadCounts(id);
 }
-
-async function loadCounts(videoId){
- const [likes,comments]=await Promise.all([
-  db.from("likes").select("*",{count:"exact",head:true}).eq("video_id",videoId),
-  db.from("comments").select("*",{count:"exact",head:true}).eq("video_id",videoId)
- ]);
- const box=document.getElementById("videoCounts");
- if(box)box.textContent="Likes: "+(likes.count??"—")+" · Comments: "+(comments.count??"—");
-}
-
 async function postComment(){
  if(!requireLogin()||!currentVideo)return;
  const input=document.getElementById("newComment");
- const text=input.value.trim();
- if(!text)return;
-
- const {error}=await db.from("comments").insert({
-  video_id:currentVideo.id,
-  user_id:currentUser.id,
-  comment:text
+ const value=input.value.trim();
+ if(!value){msg("Write a comment first.");return}
+ let result=await db.from("comments").insert({
+  video_id:currentVideo.id,user_id:currentUser.id,comment:value
  });
-
- if(error){msg("Comment failed: "+error.message);return}
- input.value="";
- msg("Comment posted.");
- await loadComments(currentVideo.id);
- await loadCounts(currentVideo.id);
+ if(result.error&&/comment.*column|column.*comment/i.test(result.error.message)){
+  result=await db.from("comments").insert({
+   video_id:currentVideo.id,user_id:currentUser.id,content:value
+  });
+ }
+ if(result.error){msg("Comment failed: "+result.error.message);return}
+ input.value="";msg("Comment posted!");
+ await loadComments(currentVideo.id);await loadCounts(currentVideo.id);
 }
-
-async function loadComments(videoId){
+async function loadComments(id){
  const box=document.getElementById("commentList");
+ box.textContent="Loading comments...";
  const {data,error}=await db.from("comments").select("*")
-  .eq("video_id",videoId).order("created_at",{ascending:false}).limit(50);
-
- if(error){box.textContent="Comments could not load: "+error.message;return}
-
+  .eq("video_id",id).order("created_at",{ascending:false}).limit(100);
+ if(error){box.textContent="Comments error: "+error.message;return}
  box.innerHTML=(data||[]).map(c=>`
   <div class="panel">
-   <b>${escapeHTML(c.user_id||"User")}</b>
-   <p>${escapeHTML(c.comment||c.content||"")}</p>
+   <b>${esc(c.user_id||"K.TUBE User")}</b>
+   <p>${esc(c.comment||c.content||"")}</p>
+   <small class="muted">${esc(c.created_at||"")}</small>
   </div>`).join("")||"No comments yet.";
 }
-
 async function subscribe(channelId){
  if(!requireLogin())return;
- if(channelId===currentUser.id){msg("You cannot subscribe to your own channel.");return}
-
- const {data:existing,error:checkError}=await db.from("subscriptions")
-  .select("*").eq("subscriber_id",currentUser.id)
-  .eq("channel_id",channelId).maybeSingle();
-
- if(checkError){msg(checkError.message);return}
-
- if(existing){
+ if(channelId===currentUser.id){msg("You cannot subscribe to yourself.");return}
+ const {data:old,error:check}=await db.from("subscriptions").select("*")
+  .eq("subscriber_id",currentUser.id).eq("channel_id",channelId).maybeSingle();
+ if(check){msg("Subscription error: "+check.message);return}
+ if(old){
   const {error}=await db.from("subscriptions").delete()
    .eq("subscriber_id",currentUser.id).eq("channel_id",channelId);
-  msg(error?error.message:"Unsubscribed.");
+  msg(error?"Unsubscribe failed: "+error.message:"Unsubscribed.");
  }else{
   const {error}=await db.from("subscriptions").insert({
    subscriber_id:currentUser.id,channel_id:channelId
   });
-  msg(error?error.message:"Subscribed successfully!");
+  msg(error?"Subscribe failed: "+error.message:"Subscribed successfully!");
  }
 }
-
 async function shareVideo(id){
  const url=location.origin+location.pathname+"?video="+encodeURIComponent(id);
  try{
   if(navigator.share)await navigator.share({title:"K.TUBE Video",url});
-  else{
-   await navigator.clipboard.writeText(url);
-   msg("Video link copied.");
-  }
- }catch(e){
-  msg("Could not share this video.");
- }
+  else{await navigator.clipboard.writeText(url);msg("Video link copied!")}
+ }catch(e){msg("Share cancelled or unavailable.")}
 }
-
+function addLater(id){
+ const ids=getSaved("ktube_later");
+ saveIds("ktube_later",[String(id),...ids]);msg("Added to Watch Later.");
+}
+function renderSaved(key,target){
+ const ids=getSaved("ktube_"+key);
+ const list=ids.map(id=>allVideos.find(v=>String(v.id)===id)).filter(Boolean);
+ document.getElementById(target).innerHTML=
+  list.map(videoCard).join("")||'<div class="panel">Nothing here yet.</div>';
+}
+async function loadLiked(){
+ if(!requireLogin())return;
+ const {data,error}=await db.from("likes").select("video_id").eq("user_id",currentUser.id);
+ if(error){document.getElementById("likedGrid").textContent=error.message;return}
+ const ids=(data||[]).map(x=>String(x.video_id));
+ document.getElementById("likedGrid").innerHTML=
+  allVideos.filter(v=>ids.includes(String(v.id))).map(videoCard).join("")||"No liked videos yet.";
+}
+async function loadSubscriptions(){
+ const box=document.getElementById("subscribedVideos");
+ if(!currentUser){box.textContent="Sign in to see subscriptions.";return}
+ const {data,error}=await db.from("subscriptions").select("channel_id")
+  .eq("subscriber_id",currentUser.id);
+ if(error){box.textContent=error.message;return}
+ const ids=(data||[]).map(x=>x.channel_id);
+ box.innerHTML=allVideos.filter(v=>ids.includes(v.user_id)).map(videoCard).join("")||
+ "No videos from subscribed channels yet.";
+}
 async function saveProfile(){
  if(!requireLogin())return;
  const username=document.getElementById("displayName").value.trim();
  const bio=document.getElementById("bio").value.trim();
-
- const {error}=await db.from("profiles").upsert({
-  id:currentUser.id,username,bio
- });
-
- msg(error?"Profile save failed: "+error.message:"Profile saved.");
+ const {error}=await db.from("profiles").upsert({id:currentUser.id,username,bio});
+ msg(error?"Profile error: "+error.message:"Profile saved!");
 }
-
 async function loadProfile(){
- if(!currentUser){
-  document.getElementById("profileInfo").textContent="Sign in to view your profile.";
-  document.getElementById("myVideos").innerHTML="";
-  return;
- }
-
+ const info=document.getElementById("profileInfo");
+ if(!currentUser){info.textContent="Sign in to manage your channel.";return}
  const {data,error}=await db.from("profiles").select("*")
   .eq("id",currentUser.id).maybeSingle();
-
- if(!error&&data){
-  document.getElementById("displayName").value=data.username||"";
-  document.getElementById("bio").value=data.bio||"";
- }
-
- document.getElementById("profileInfo").textContent=currentUser.email||"My Channel";
-
- const mine=allVideos.filter(v=>v.user_id===currentUser.id);
+ if(error){info.textContent=error.message;return}
+ document.getElementById("displayName").value=data?.username||"";
+ document.getElementById("bio").value=data?.bio||"";
+ info.textContent=currentUser.email||"My Channel";
  document.getElementById("myVideos").innerHTML=
-  mine.map(videoCard).join("")||"You have not uploaded videos yet.";
+  allVideos.filter(v=>v.user_id===currentUser.id).map(videoCard).join("")||"No uploads yet.";
 }
 
-async function loadSubscriptions(){
- if(!currentUser){
-  document.getElementById("subscribedVideos").textContent="Sign in to see your subscriptions.";
-  return;
- }
-
- const {data,error}=await db.from("subscriptions").select("channel_id")
-  .eq("subscriber_id",currentUser.id);
-
- if(error){
-  document.getElementById("subscribedVideos").textContent=error.message;
-  return;
- }
-
- const ids=(data||[]).map(x=>x.channel_id);
- const videos=allVideos.filter(v=>ids.includes(v.user_id));
-
- document.getElementById("subscribedVideos").innerHTML=
-  videos.map(videoCard).join("")||"No videos from your subscribed channels yet.";
-}
-
-db.auth.onAuthStateChange(async (_event,session)=>{
+db.auth.onAuthStateChange((_event,session)=>{
  currentUser=session?.user||null;
- await refreshAuth();
+ refreshAuth();
 });
-
-(async function startKTube(){
+(async function start(){
  await refreshAuth();
  await loadVideos();
-
- const videoId=new URLSearchParams(location.search).get("video");
- if(videoId){
-  setTimeout(()=>watchVideo(videoId),500);
- }
+ const id=new URLSearchParams(location.search).get("video");
+ if(id)watchVideo(id);
 })();
 </script>
 </body>
